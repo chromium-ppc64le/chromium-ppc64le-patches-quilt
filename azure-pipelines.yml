@@ -1,0 +1,45 @@
+# Copyright 2019 Colin Samples
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+trigger:
+  tags:
+    include:
+    - v*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+  submodules: true
+
+- script: sudo apt-get install -y quilt
+  displayName: 'Install Quilt'
+
+- script: echo "##vso[task.setvariable variable=chrome_ver]$(grep 'chrome_ver :=' Makefile | cut -d' ' -f3)"
+  displayName: 'Get Chromium version'
+
+- script: |
+    make dist && \
+    cp target/patches-*.tar.gz $(Build.ArtifactStagingDirectory)
+  displayName: 'Generate patches tarball'
+
+- script: make check-patches
+  displayName: 'Check that patches apply'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish build artifacts'
+  inputs:
+    pathToPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: ChromiumPatches
+
+- task: GitHubRelease@1
+  displayName: 'Create GitHub release'
+  inputs:
+    gitHubConnection: 'github connection'
+    tagPattern: 'v$(chrome_ver)'
+    title: 'Chromium $(chrome_ver)'
+    addChangeLog: false
+

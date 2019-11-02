@@ -1,0 +1,31 @@
+#!/bin/sh
+# Copyright 2019 Colin Samples
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+
+if [ ! -d ${PWD}/.git ] ; then
+    echo "ERROR: this command must be used from the base of a git repo!" 1>&2
+    exit 1
+fi
+
+DIR=${PWD}
+CHROME_ROOT=
+until [ -e ${DIR}/.gclient -o ${DIR} = "/" ] ; do
+    CHROME_ROOT=$(basename ${DIR})/${CHROME_ROOT}
+    DIR=$(realpath -s ${DIR}/..)
+done
+
+if [ ${DIR} = "/" ] ; then
+    echo "ERROR: could not find chromium root!" 1>&2
+    exit 1;
+fi
+
+CHROME_PREFIX=$(echo -n ${CHROME_ROOT} | cut -d"/" -f2- -)
+git format-patch \
+    --src-prefix="a/${CHROME_PREFIX}" \
+    --dst-prefix="b/${CHROME_PREFIX}" \
+    "$@"
+

@@ -17,14 +17,14 @@ index c486f1a1c8..90199198c5 100644
      if (host_byteorder == "little") {
        defines += [ "V8_TARGET_ARCH_PPC_LE" ]
 +        cflags += [
-+        # Enable usage of AltiVec, VSX, and other POWER8 and higher features
-+        "-mcpu=power8",
++        # Enable usage of AltiVec, VSX, and other POWER9 and higher features
++        "-mcpu=power9",
 +        "-maltivec",
 +        "-mvsx",
 +      ]
      } else if (host_byteorder == "big") {
        defines += [ "V8_TARGET_ARCH_PPC_BE" ]
        if (current_os == "aix") {
--- 
+--
 2.23.0
 

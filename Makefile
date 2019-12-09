@@ -5,10 +5,10 @@
 
 .DEFAULT_GOAL := all
 
-chrome_ver := 78.0.3904.108
+chrome_ver := 79.0.3945.79
 
 chrome_url := https://commondatastorage.googleapis.com/chromium-browser-official/chromium-$(chrome_ver).tar.xz
-download_url_base := https://github.com/vddvss/chromium-ppc64le-patches-quilt/releases/download
+download_url_base := https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download
 dist_file_name := patches-$(chrome_ver).tar.gz
 
 define update_readme_ed_script :=

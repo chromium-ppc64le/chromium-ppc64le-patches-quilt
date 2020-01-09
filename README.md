@@ -7,7 +7,7 @@ application using `quilt` and tagged for specific Chromium releases.
 <!-- CURRENT TABLE -->
 | Version | Patches |
 | ------- | ------- |
-| 79.0.3945.177 | [patches-79.0.3945.177.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v79.0.3945.177/patches-79.0.3945.177.tar.gz) |
+| 79.0.3945.117 | [patches-79.0.3945.117.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v79.0.3945.117/patches-79.0.3945.117.tar.gz) |
 
 ## Prerequisites
 
@@ -17,9 +17,9 @@ to apply the patches easily.
 ## Applying patches
 
 ```
-tar xJf chromium-79.0.3945.177.tar.xz
-cd chromium-79.0.3945.177
-tar xzf patches-79.0.3945.177.tar.gz
+tar xJf chromium-79.0.3945.117.tar.xz
+cd chromium-79.0.3945.117
+tar xzf patches-79.0.3945.117.tar.gz
 quilt push -a
 ```
 

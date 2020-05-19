@@ -1,50 +1,50 @@
-From 437da61545b4c1d33db8f39c8a6aa930abd5e0d7 Mon Sep 17 00:00:00 2001
+From 8c24c695052d156fd1322d6dacfab117b92cb175 Mon Sep 17 00:00:00 2001
 From: Shawn Anastasio <shawnanastasio@yahoo.com>
 Date: Thu, 30 Aug 2018 17:32:05 -0500
 Subject: [PATCH] Implement support for PPC64 on Linux
 
 This patch implements support for the PPC64 architecture on Linux hosts.
 ---
- third_party/crashpad/crashpad/CONTRIBUTORS    |   1 +
- .../crashpad/minidump/minidump_context.h      |  64 ++++++
- .../minidump/minidump_context_writer.cc       |  50 +++++
- .../minidump/minidump_context_writer.h        |  39 ++++
- .../minidump/minidump_context_writer_test.cc  |  15 ++
- .../minidump/minidump_misc_info_writer.cc     |   2 +
- .../test/minidump_context_test_util.cc        |  67 ++++++
- .../test/minidump_context_test_util.h         |   3 +
- .../crashpad/snapshot/capture_memory.cc       |   5 +
- .../crashpad/snapshot/cpu_architecture.h      |   5 +-
- .../crashpad/crashpad/snapshot/cpu_context.cc |   5 +
- .../crashpad/crashpad/snapshot/cpu_context.h  |  19 ++
- .../snapshot/linux/cpu_context_linux.h        |  73 ++++++
- .../snapshot/linux/debug_rendezvous_test.cc   |   4 +-
- .../linux/exception_snapshot_linux.cc         |  63 ++++++
- .../snapshot/linux/exception_snapshot_linux.h |   2 +
+ CONTRIBUTORS                                  |   1 +
+ minidump/minidump_context.h                   |  64 ++++++
+ minidump/minidump_context_writer.cc           |  50 +++++
+ minidump/minidump_context_writer.h            |  39 ++++
+ minidump/minidump_context_writer_test.cc      |  15 ++
+ minidump/minidump_misc_info_writer.cc         |   2 +
+ minidump/test/minidump_context_test_util.cc   |  67 ++++++
+ minidump/test/minidump_context_test_util.h    |   3 +
+ snapshot/capture_memory.cc                    |   5 +
+ snapshot/cpu_architecture.h                   |   5 +-
+ snapshot/cpu_context.cc                       |   5 +
+ snapshot/cpu_context.h                        |  19 ++
+ snapshot/linux/cpu_context_linux.h            |  73 ++++++
+ snapshot/linux/debug_rendezvous_test.cc       |   4 +-
+ snapshot/linux/exception_snapshot_linux.cc    |  63 ++++++
+ snapshot/linux/exception_snapshot_linux.h     |   2 +
  .../linux/exception_snapshot_linux_test.cc    |  21 ++
- .../snapshot/linux/process_reader_linux.cc    |   2 +
- .../linux/process_reader_linux_test.cc        |   2 +
- .../crashpad/snapshot/linux/signal_context.h  |  83 +++++++
- .../snapshot/linux/system_snapshot_linux.cc   |  11 +
- .../snapshot/linux/thread_snapshot_linux.cc   |   8 +
- .../snapshot/linux/thread_snapshot_linux.h    |   2 +
- .../snapshot/test/test_cpu_context.cc         |  33 +++
- .../crashpad/snapshot/test/test_cpu_context.h |   1 +
- .../crashpad/crashpad/test/linux/get_tls.cc   |   2 +
- .../crashpad/test/multiprocess_posix.cc       |   3 +-
- .../crashpad/util/linux/auxiliary_vector.cc   |   5 +
- .../crashpad/util/linux/ptrace_broker.cc      |   4 +-
- .../crashpad/crashpad/util/linux/ptracer.cc   |  61 +++++
- .../crashpad/util/linux/thread_info.h         |  55 +++++
- .../crashpad/util/misc/capture_context.h      |   1 +
- .../util/misc/capture_context_linux.S         | 212 +++++++++++++++++-
- .../util/misc/capture_context_test.cc         |   2 +-
- .../misc/capture_context_test_util_linux.cc   |   6 +
- .../crashpad/util/posix/signals_test.cc       |  12 +-
- 36 files changed, 931 insertions(+), 12 deletions(-)
+ snapshot/linux/process_reader_linux.cc        |   2 +
+ snapshot/linux/process_reader_linux_test.cc   |   2 +
+ snapshot/linux/signal_context.h               |  83 +++++++
+ snapshot/linux/system_snapshot_linux.cc       |  11 +
+ snapshot/linux/thread_snapshot_linux.cc       |   8 +
+ snapshot/linux/thread_snapshot_linux.h        |   2 +
+ snapshot/test/test_cpu_context.cc             |  33 +++
+ snapshot/test/test_cpu_context.h              |   1 +
+ test/linux/get_tls.cc                         |   2 +
+ test/multiprocess_posix.cc                    |   3 +-
+ util/linux/auxiliary_vector.cc                |   5 +
+ util/linux/ptrace_broker.cc                   |   4 +-
+ util/linux/ptracer.cc                         |  61 +++++
+ util/linux/thread_info.h                      |  55 +++++
+ util/misc/capture_context.h                   |   1 +
+ util/misc/capture_context_linux.S             | 212 +++++++++++++++++-
+ util/misc/capture_context_test.cc             |   3 +-
+ util/misc/capture_context_test_util_linux.cc  |   6 +
+ util/posix/signals_test.cc                    |  12 +-
+ 36 files changed, 932 insertions(+), 12 deletions(-)
 
 diff --git a/third_party/crashpad/crashpad/CONTRIBUTORS b/third_party/crashpad/crashpad/CONTRIBUTORS
-index 8724b7f32f10..8e29424ef633 100644
+index 8724b7f3..8e29424e 100644
 --- a/third_party/crashpad/crashpad/CONTRIBUTORS
 +++ b/third_party/crashpad/crashpad/CONTRIBUTORS
 @@ -13,3 +13,4 @@ Mark Mentovai <mark@chromium.org>
@@ -53,13 +53,13 @@ index 8724b7f32f10..8e29424ef633 100644
  Joshua Peraza <jperaza@chromium.org>
 +Shawn Anastasio <shawn@anastas.io>
 diff --git a/third_party/crashpad/crashpad/minidump/minidump_context.h b/third_party/crashpad/crashpad/minidump/minidump_context.h
-index 3a3e603cb0d2..3118d9e9f9a6 100644
+index 3a3e603c..3118d9e9 100644
 --- a/third_party/crashpad/crashpad/minidump/minidump_context.h
 +++ b/third_party/crashpad/crashpad/minidump/minidump_context.h
 @@ -592,6 +592,70 @@ struct MinidumpContextMIPS64 {
    uint64_t fir;
  };
- 
+
 +//! \brief ppc64-specific flags for MinidumpPPC64::context_flags
 +//! Based on minidump_cpu_ppc64.h from breakpad
 +enum MinidumpContextPPC64Flags : uint32_t {
@@ -125,16 +125,16 @@ index 3a3e603cb0d2..3118d9e9f9a6 100644
 +};
 +
  }  // namespace crashpad
- 
+
  #endif  // CRASHPAD_MINIDUMP_MINIDUMP_CONTEXT_H_
 diff --git a/third_party/crashpad/crashpad/minidump/minidump_context_writer.cc b/third_party/crashpad/crashpad/minidump/minidump_context_writer.cc
-index d7e53a4932fa..d89eb9e0132a 100644
+index d7e53a49..d89eb9e0 100644
 --- a/third_party/crashpad/crashpad/minidump/minidump_context_writer.cc
 +++ b/third_party/crashpad/crashpad/minidump/minidump_context_writer.cc
 @@ -101,6 +101,13 @@ MinidumpContextWriter::CreateFromSnapshot(const CPUContext* context_snapshot) {
        break;
      }
- 
+
 +    case kCPUArchitecturePPC64: {
 +      context = std::make_unique<MinidumpContextPPC64Writer>();
 +      reinterpret_cast<MinidumpContextPPC64Writer*>(context.get())
@@ -148,7 +148,7 @@ index d7e53a4932fa..d89eb9e0132a 100644
 @@ -453,4 +460,47 @@ size_t MinidumpContextMIPS64Writer::ContextSize() const {
    return sizeof(context_);
  }
- 
+
 +MinidumpContextPPC64Writer::MinidumpContextPPC64Writer()
 +  : MinidumpContextWriter(), context_() {
 +    context_.context_flags = kMinidumpContextPPC64;
@@ -194,13 +194,13 @@ index d7e53a4932fa..d89eb9e0132a 100644
 +
  }  // namespace crashpad
 diff --git a/third_party/crashpad/crashpad/minidump/minidump_context_writer.h b/third_party/crashpad/crashpad/minidump/minidump_context_writer.h
-index d4ab936ee7f9..1d22fc59c97c 100644
+index d4ab936e..1d22fc59 100644
 --- a/third_party/crashpad/crashpad/minidump/minidump_context_writer.h
 +++ b/third_party/crashpad/crashpad/minidump/minidump_context_writer.h
 @@ -315,6 +315,45 @@ class MinidumpContextMIPS64Writer final : public MinidumpContextWriter {
    DISALLOW_COPY_AND_ASSIGN(MinidumpContextMIPS64Writer);
  };
- 
+
 +class MinidumpContextPPC64Writer final : public MinidumpContextWriter {
 + public:
 +  MinidumpContextPPC64Writer();
@@ -241,16 +241,16 @@ index d4ab936ee7f9..1d22fc59c97c 100644
 +};
 +
  }  // namespace crashpad
- 
+
  #endif  // CRASHPAD_MINIDUMP_MINIDUMP_CONTEXT_WRITER_H_
 diff --git a/third_party/crashpad/crashpad/minidump/minidump_context_writer_test.cc b/third_party/crashpad/crashpad/minidump/minidump_context_writer_test.cc
-index 3216a906baeb..a9fcbe9d8e82 100644
+index 3216a906..a9fcbe9d 100644
 --- a/third_party/crashpad/crashpad/minidump/minidump_context_writer_test.cc
 +++ b/third_party/crashpad/crashpad/minidump/minidump_context_writer_test.cc
 @@ -213,6 +213,21 @@ TEST(MinidumpContextWriter, MIPS64_FromSnapshot) {
        context, ExpectMinidumpContextMIPS64, kSeed);
  }
- 
+
 +TEST(MinidumpContextWriter, PPC64_Zeros) {
 +  EmptyContextTest<MinidumpContextPPC64Writer, MinidumpContextPPC64>(
 +    ExpectMinidumpContextPPC64);
@@ -270,7 +270,7 @@ index 3216a906baeb..a9fcbe9d8e82 100644
  }  // namespace test
  }  // namespace crashpad
 diff --git a/third_party/crashpad/crashpad/minidump/minidump_misc_info_writer.cc b/third_party/crashpad/crashpad/minidump/minidump_misc_info_writer.cc
-index a13407605f73..95dc9252406f 100644
+index a1340760..95dc9252 100644
 --- a/third_party/crashpad/crashpad/minidump/minidump_misc_info_writer.cc
 +++ b/third_party/crashpad/crashpad/minidump/minidump_misc_info_writer.cc
 @@ -126,6 +126,8 @@ std::string MinidumpMiscInfoDebugBuildString() {
@@ -283,13 +283,13 @@ index a13407605f73..95dc9252406f 100644
  #error define kCPU for this CPU
  #endif
 diff --git a/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.cc b/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.cc
-index c94fa20db3e3..bb95164d53e7 100644
+index c94fa20d..bb95164d 100644
 --- a/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.cc
 +++ b/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.cc
 @@ -272,6 +272,40 @@ void InitializeMinidumpContextMIPS64(MinidumpContextMIPS64* context,
    context->dsp_control = value++;
  }
- 
+
 +void InitializeMinidumpContextPPC64(MinidumpContextPPC64* context,
 +                                    uint32_t seed) {
 +  if (seed == 0) {
@@ -325,12 +325,12 @@ index c94fa20db3e3..bb95164d53e7 100644
 +}
 +
  namespace {
- 
+
  // Using gtest assertions, compares |expected| to |observed|. This is
 @@ -594,5 +628,38 @@ void ExpectMinidumpContextMIPS64(uint32_t expect_seed,
    EXPECT_EQ(observed->dsp_control, expected.dsp_control);
  }
- 
+
 +void ExpectMinidumpContextPPC64(uint32_t expect_seed,
 +                                const MinidumpContextPPC64* observed,
 +                                bool snapshot) {
@@ -367,7 +367,7 @@ index c94fa20db3e3..bb95164d53e7 100644
  }  // namespace test
  }  // namespace crashpad
 diff --git a/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.h b/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.h
-index 080e04a036b5..5f8476c92f01 100644
+index 080e04a0..5f8476c9 100644
 --- a/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.h
 +++ b/third_party/crashpad/crashpad/minidump/test/minidump_context_test_util.h
 @@ -85,6 +85,9 @@ void ExpectMinidumpContextMIPS(uint32_t expect_seed,
@@ -378,10 +378,10 @@ index 080e04a036b5..5f8476c92f01 100644
 +                                const MinidumpContextPPC64* observed,
 +                                bool snapshot);
  //! \}
- 
+
  }  // namespace test
 diff --git a/third_party/crashpad/crashpad/snapshot/capture_memory.cc b/third_party/crashpad/crashpad/snapshot/capture_memory.cc
-index a51626ccdc0c..61e0b20a17c2 100644
+index a51626cc..61e0b20a 100644
 --- a/third_party/crashpad/crashpad/snapshot/capture_memory.cc
 +++ b/third_party/crashpad/crashpad/snapshot/capture_memory.cc
 @@ -111,6 +111,11 @@ void CaptureMemory::PointedToByContext(const CPUContext& context,
@@ -397,12 +397,12 @@ index a51626ccdc0c..61e0b20a17c2 100644
  #error Port.
  #endif
 diff --git a/third_party/crashpad/crashpad/snapshot/cpu_architecture.h b/third_party/crashpad/crashpad/snapshot/cpu_architecture.h
-index 811a7209587d..f4f83981dfdc 100644
+index 811a7209..f4f83981 100644
 --- a/third_party/crashpad/crashpad/snapshot/cpu_architecture.h
 +++ b/third_party/crashpad/crashpad/snapshot/cpu_architecture.h
 @@ -43,7 +43,10 @@ enum CPUArchitecture {
    kCPUArchitectureMIPSEL,
- 
+
    //! \brief 64-bit MIPSEL.
 -  kCPUArchitectureMIPS64EL
 +  kCPUArchitectureMIPS64EL,
@@ -410,10 +410,10 @@ index 811a7209587d..f4f83981dfdc 100644
 +  //! \brief 64-bit PPC64.
 +  kCPUArchitecturePPC64
  };
- 
+
  }  // namespace crashpad
 diff --git a/third_party/crashpad/crashpad/snapshot/cpu_context.cc b/third_party/crashpad/crashpad/snapshot/cpu_context.cc
-index 6fb8d7e719fc..b01f7cad11f8 100644
+index 6fb8d7e7..b01f7cad 100644
 --- a/third_party/crashpad/crashpad/snapshot/cpu_context.cc
 +++ b/third_party/crashpad/crashpad/snapshot/cpu_context.cc
 @@ -169,6 +169,8 @@ uint64_t CPUContext::InstructionPointer() const {
@@ -443,13 +443,13 @@ index 6fb8d7e719fc..b01f7cad11f8 100644
      case kCPUArchitectureX86:
      case kCPUArchitectureARM:
 diff --git a/third_party/crashpad/crashpad/snapshot/cpu_context.h b/third_party/crashpad/crashpad/snapshot/cpu_context.h
-index fb23c4679f0a..eebede63c6b8 100644
+index fb23c467..eebede63 100644
 --- a/third_party/crashpad/crashpad/snapshot/cpu_context.h
 +++ b/third_party/crashpad/crashpad/snapshot/cpu_context.h
 @@ -352,6 +352,24 @@ struct CPUContextMIPS64 {
    uint64_t fir;
  };
- 
+
 +//! \brief A context structure carrying PPC64 CPU state.
 +struct CPUContextPPC64 {
 +  uint64_t nip;
@@ -478,23 +478,23 @@ index fb23c4679f0a..eebede63c6b8 100644
 +    CPUContextPPC64* ppc64;
    };
  };
- 
+
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/cpu_context_linux.h b/third_party/crashpad/crashpad/snapshot/linux/cpu_context_linux.h
-index 37fbc4325cea..cf4ef7ef96e5 100644
+index 37fbc432..cf4ef7ef 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/cpu_context_linux.h
 +++ b/third_party/crashpad/crashpad/snapshot/linux/cpu_context_linux.h
 @@ -15,6 +15,7 @@
  #ifndef CRASHPAD_SNAPSHOT_LINUX_CPU_CONTEXT_LINUX_H_
  #define CRASHPAD_SNAPSHOT_LINUX_CPU_CONTEXT_LINUX_H_
- 
+
 +#include <cstring>
  #include "build/build_config.h"
  #include "snapshot/cpu_context.h"
  #include "snapshot/linux/signal_context.h"
 @@ -174,6 +175,78 @@ void InitializeCPUContextMIPS(
- 
+
  #endif  // ARCH_CPU_MIPS_FAMILY || DOXYGEN
- 
+
 +#if defined(ARCH_CPU_PPC64_FAMILY) || DOXYGEN
 +
 +//! \brief Initalizes a CPUContextPPC64 structure from native context
@@ -569,9 +569,9 @@ index 37fbc4325cea..cf4ef7ef96e5 100644
 +
  }  // namespace internal
  }  // namespace crashpad
- 
+
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/debug_rendezvous_test.cc b/third_party/crashpad/crashpad/snapshot/linux/debug_rendezvous_test.cc
-index be22c903133a..c5df23d1b4df 100644
+index be22c903..c5df23d1 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/debug_rendezvous_test.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/debug_rendezvous_test.cc
 @@ -159,9 +159,11 @@ void TestAgainstTarget(PtraceConnection* connection) {
@@ -588,13 +588,13 @@ index be22c903133a..c5df23d1b4df 100644
          module_mapping->name,
          module_mapping->device,
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.cc b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.cc
-index cd40b3b12d65..6bcf23b6ffe7 100644
+index cd40b3b1..6bcf23b6 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.cc
 @@ -323,6 +323,69 @@ bool ExceptionSnapshotLinux::ReadContext<ContextTraits64>(
        reader, context_address, context_.mips64);
  }
- 
+
 +#elif defined(ARCH_CPU_PPC64_FAMILY)
 +
 +template <typename Traits>
@@ -659,10 +659,10 @@ index cd40b3b12d65..6bcf23b6ffe7 100644
 +}
 +
  #endif  // ARCH_CPU_X86_FAMILY
- 
+
  bool ExceptionSnapshotLinux::Initialize(ProcessReaderLinux* process_reader,
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.h b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.h
-index ea0cd21066d2..e42df520ff47 100644
+index ea0cd210..e42df520 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.h
 +++ b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux.h
 @@ -84,6 +84,8 @@ class ExceptionSnapshotLinux final : public ExceptionSnapshot {
@@ -675,7 +675,7 @@ index ea0cd21066d2..e42df520ff47 100644
    } context_union_;
    CPUContext context_;
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux_test.cc b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux_test.cc
-index e4ff1ab79fb4..25534dd08764 100644
+index e4ff1ab7..25534dd0 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux_test.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/exception_snapshot_linux_test.cc
 @@ -296,7 +296,28 @@ void ExpectContext(const CPUContext& actual, const NativeCPUContext& expected) {
@@ -693,7 +693,7 @@ index e4ff1ab79fb4..25534dd08764 100644
 +  memset(&context->uc_mcontext.fp_regs, 44,
 +      sizeof(context->uc_mcontext.fp_regs));
 +}
- 
+
 +void ExpectContext(const CPUContext& actual, const NativeCPUContext& expected) {
 +  EXPECT_EQ(actual.architecture, kCPUArchitecturePPC64);
 +
@@ -708,7 +708,7 @@ index e4ff1ab79fb4..25534dd08764 100644
  #error Port.
  #endif
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux.cc b/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux.cc
-index b96abfe74fe8..df12ca566926 100644
+index c1d6c40f..8923b171 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux.cc
 @@ -108,6 +108,8 @@ void ProcessReaderLinux::Thread::InitializeStack(ProcessReaderLinux* reader) {
@@ -721,26 +721,26 @@ index b96abfe74fe8..df12ca566926 100644
  #error Port.
  #endif
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux_test.cc b/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux_test.cc
-index d767700205fe..40ad41d74f7e 100644
+index e2e5566c..ee194c7c 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux_test.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/process_reader_linux_test.cc
-@@ -613,6 +613,8 @@ bool WriteTestModule(const base::FilePath& module_path) {
+@@ -591,6 +591,8 @@ bool WriteTestModule(const base::FilePath& module_path) {
    module.ehdr.e_machine = EM_AARCH64;
  #elif defined(ARCH_CPU_MIPSEL) || defined(ARCH_CPU_MIPS64EL)
    module.ehdr.e_machine = EM_MIPS;
 +#elif defined(ARCH_CPU_PPC64)
 +  module.ehdr.e_machine = EM_PPC64;
  #endif
- 
+
    module.ehdr.e_version = EV_CURRENT;
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/signal_context.h b/third_party/crashpad/crashpad/snapshot/linux/signal_context.h
-index 110024680bdb..8e335a0960cf 100644
+index 11002468..8e335a09 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/signal_context.h
 +++ b/third_party/crashpad/crashpad/snapshot/linux/signal_context.h
 @@ -422,6 +422,89 @@ static_assert(offsetof(UContext<ContextTraits64>, mcontext.fpregs) ==
                "context offset mismatch");
  #endif
- 
+
 +#elif defined(ARCH_CPU_PPC64_FAMILY)
 +
 +struct SignalThreadContext64 {
@@ -828,7 +828,7 @@ index 110024680bdb..8e335a0960cf 100644
  #error Port.
  #endif  // ARCH_CPU_X86_FAMILY
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/system_snapshot_linux.cc b/third_party/crashpad/crashpad/snapshot/linux/system_snapshot_linux.cc
-index 8564d3d45570..b690ecd48fa7 100644
+index 8564d3d4..b690ecd4 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/system_snapshot_linux.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/system_snapshot_linux.cc
 @@ -203,6 +203,8 @@ CPUArchitecture SystemSnapshotLinux::GetCPUArchitecture() const {
@@ -871,7 +871,7 @@ index 8564d3d45570..b690ecd48fa7 100644
  #error Port.
  #endif  // ARCH_CPU_X86_FAMILY
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.cc b/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.cc
-index e3e2bebddb9a..8ef43752ebd4 100644
+index f40c78e8..5195c080 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.cc
 +++ b/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.cc
 @@ -186,6 +186,14 @@ bool ThreadSnapshotLinux::Initialize(ProcessReaderLinux* process_reader,
@@ -890,7 +890,7 @@ index e3e2bebddb9a..8ef43752ebd4 100644
  #error Port.
  #endif
 diff --git a/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.h b/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.h
-index 44cc6f6d9732..d4136461e21d 100644
+index 17e471f3..cea09d07 100644
 --- a/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.h
 +++ b/third_party/crashpad/crashpad/snapshot/linux/thread_snapshot_linux.h
 @@ -68,6 +68,8 @@ class ThreadSnapshotLinux final : public ThreadSnapshot {
@@ -903,13 +903,13 @@ index 44cc6f6d9732..d4136461e21d 100644
  #error Port.
  #endif  // ARCH_CPU_X86_FAMILY
 diff --git a/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.cc b/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.cc
-index 746e340792b3..b9fe0092fb78 100644
+index 746e3407..b9fe0092 100644
 --- a/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.cc
 +++ b/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.cc
 @@ -292,5 +292,38 @@ void InitializeCPUContextMIPS64(CPUContext* context, uint32_t seed) {
    mips64->dsp_control = value++;
  }
- 
+
 +void InitializeCPUContextPPC64(CPUContext* context, uint32_t seed) {
 +  context->architecture = kCPUArchitecturePPC64;
 +  CPUContextPPC64* ppc64 = context->ppc64;
@@ -946,7 +946,7 @@ index 746e340792b3..b9fe0092fb78 100644
  }  // namespace test
  }  // namespace crashpad
 diff --git a/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.h b/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.h
-index ca1b6b7b2a80..6bbeef16407b 100644
+index ca1b6b7b..6bbeef16 100644
 --- a/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.h
 +++ b/third_party/crashpad/crashpad/snapshot/test/test_cpu_context.h
 @@ -63,6 +63,7 @@ void InitializeCPUContextARM(CPUContext* context, uint32_t seed);
@@ -955,10 +955,10 @@ index ca1b6b7b2a80..6bbeef16407b 100644
  void InitializeCPUContextMIPS64(CPUContext* context, uint32_t seed);
 +void InitializeCPUContextPPC64(CPUContext* context, uint32_t seed);
  //! \}
- 
+
  }  // namespace test
 diff --git a/third_party/crashpad/crashpad/test/linux/get_tls.cc b/third_party/crashpad/crashpad/test/linux/get_tls.cc
-index 452724deae5d..6e3a5a896acc 100644
+index 452724de..6e3a5a89 100644
 --- a/third_party/crashpad/crashpad/test/linux/get_tls.cc
 +++ b/third_party/crashpad/crashpad/test/linux/get_tls.cc
 @@ -49,6 +49,8 @@ LinuxVMAddress GetTLS() {
@@ -971,12 +971,12 @@ index 452724deae5d..6e3a5a896acc 100644
  #error Port.
  #endif  // ARCH_CPU_ARMEL
 diff --git a/third_party/crashpad/crashpad/test/multiprocess_posix.cc b/third_party/crashpad/crashpad/test/multiprocess_posix.cc
-index d2de3184d2a2..a8ab18411532 100644
+index 2e0c3856..88997d54 100644
 --- a/third_party/crashpad/crashpad/test/multiprocess_posix.cc
 +++ b/third_party/crashpad/crashpad/test/multiprocess_posix.cc
 @@ -162,7 +162,8 @@ void Multiprocess::SetExpectedChildTermination(TerminationReason reason,
  }
- 
+
  void Multiprocess::SetExpectedChildTerminationBuiltinTrap() {
 -#if defined(ARCH_CPU_ARM64) || defined(ARCH_CPU_MIPS_FAMILY)
 +#if defined(ARCH_CPU_ARM64) || defined(ARCH_CPU_MIPS_FAMILY) || \
@@ -985,7 +985,7 @@ index d2de3184d2a2..a8ab18411532 100644
  #else
    SetExpectedChildTermination(kTerminationSignal, SIGILL);
 diff --git a/third_party/crashpad/crashpad/util/linux/auxiliary_vector.cc b/third_party/crashpad/crashpad/util/linux/auxiliary_vector.cc
-index d3d5ebdfb9fa..3fd730cb5205 100644
+index d3d5ebdf..3fd730cb 100644
 --- a/third_party/crashpad/crashpad/util/linux/auxiliary_vector.cc
 +++ b/third_party/crashpad/crashpad/util/linux/auxiliary_vector.cc
 @@ -56,6 +56,11 @@ bool AuxiliaryVector::Read(PtraceConnection* connection) {
@@ -1001,12 +1001,12 @@ index d3d5ebdfb9fa..3fd730cb5205 100644
        LOG(ERROR) << "duplicate auxv entry";
        return false;
 diff --git a/third_party/crashpad/crashpad/util/linux/ptrace_broker.cc b/third_party/crashpad/crashpad/util/linux/ptrace_broker.cc
-index 155a1e0c6f45..5e50ceb5f8d7 100644
+index 4d7e4ced..b9e08950 100644
 --- a/third_party/crashpad/crashpad/util/linux/ptrace_broker.cc
 +++ b/third_party/crashpad/crashpad/util/linux/ptrace_broker.cc
-@@ -94,8 +94,8 @@ int PtraceBroker::Run() {
+@@ -93,8 +93,8 @@ int PtraceBroker::Run() {
  }
- 
+
  bool PtraceBroker::AllocateAttachments() {
 -  constexpr size_t page_size = 4096;
 -  constexpr size_t alloc_size =
@@ -1016,13 +1016,13 @@ index 155a1e0c6f45..5e50ceb5f8d7 100644
    void* alloc = sbrk(alloc_size);
    if (reinterpret_cast<intptr_t>(alloc) == -1) {
 diff --git a/third_party/crashpad/crashpad/util/linux/ptracer.cc b/third_party/crashpad/crashpad/util/linux/ptracer.cc
-index c6c92299464a..c770b6b6fe7c 100644
+index c6c92299..c770b6b6 100644
 --- a/third_party/crashpad/crashpad/util/linux/ptracer.cc
 +++ b/third_party/crashpad/crashpad/util/linux/ptracer.cc
 @@ -394,6 +394,64 @@ bool GetThreadArea64(pid_t tid,
    return true;
  }
- 
+
 +#elif defined(ARCH_CPU_PPC64_FAMILY)
 +// PPC64 has had HAVE_ARCH_TRACEHOOK set since 2.6.27 (even before x86 had it).
 +// That means we can simply use PTRACE_GETREGESET.
@@ -1095,19 +1095,19 @@ index c6c92299464a..c770b6b6fe7c 100644
                             info->thread_context,
                             &info->thread_specific_data_address,
 diff --git a/third_party/crashpad/crashpad/util/linux/thread_info.h b/third_party/crashpad/crashpad/util/linux/thread_info.h
-index 5b55c24a76d5..dea0d1f39eb3 100644
+index 5b55c24a..dea0d1f3 100644
 --- a/third_party/crashpad/crashpad/util/linux/thread_info.h
 +++ b/third_party/crashpad/crashpad/util/linux/thread_info.h
 @@ -28,6 +28,10 @@
  #include <android/api-level.h>
  #endif
- 
+
 +#if defined(ARCH_CPU_PPC64_FAMILY)
 +#include <sys/ucontext.h>
 +#endif
 +
  namespace crashpad {
- 
+
  //! \brief The set of general purpose registers for an architecture family.
 @@ -79,6 +83,8 @@ union ThreadContext {
      uint32_t cp0_status;
@@ -1182,7 +1182,7 @@ index 5b55c24a76d5..dea0d1f39eb3 100644
 @@ -287,6 +319,26 @@ union FloatContext {
  static_assert(std::is_standard_layout<FloatContext>::value,
                "Not standard layout");
- 
+
 +//! \brief The vector registers used for an architecture family
 +union VectorContext {
 +  struct v32_t {} v32;
@@ -1209,7 +1209,7 @@ index 5b55c24a76d5..dea0d1f39eb3 100644
 @@ -298,6 +350,9 @@ struct ThreadInfo {
    //! \brief The floating point registers for the thread.
    FloatContext float_context;
- 
+
 +  //! \brief (Optional) The vector registers used for the thread.
 +  VectorContext vector_context;
 +
@@ -1217,7 +1217,7 @@ index 5b55c24a76d5..dea0d1f39eb3 100644
    LinuxVMAddress thread_specific_data_address;
  };
 diff --git a/third_party/crashpad/crashpad/util/misc/capture_context.h b/third_party/crashpad/crashpad/util/misc/capture_context.h
-index 541589dfde2f..5b0fc8218c0e 100644
+index 541589df..5b0fc821 100644
 --- a/third_party/crashpad/crashpad/util/misc/capture_context.h
 +++ b/third_party/crashpad/crashpad/util/misc/capture_context.h
 @@ -66,6 +66,7 @@ using NativeCPUContext = ucontext_t;
@@ -1229,21 +1229,21 @@ index 541589dfde2f..5b0fc8218c0e 100644
  //!     Additionally, the value `LR` on ARM/ARM64 will be the return address of
  //!     this function.
 diff --git a/third_party/crashpad/crashpad/util/misc/capture_context_linux.S b/third_party/crashpad/crashpad/util/misc/capture_context_linux.S
-index de71e7231273..af0ffff39200 100644
+index 657a979a..8b1d139e 100644
 --- a/third_party/crashpad/crashpad/util/misc/capture_context_linux.S
 +++ b/third_party/crashpad/crashpad/util/misc/capture_context_linux.S
 @@ -28,7 +28,7 @@
    .globl CAPTURECONTEXT_SYMBOL2
  #if defined(__i386__) || defined(__x86_64__)
    .balign 16, 0x90
--#elif defined(__arm__) || defined(__aarch64__) || defined(__mips__)
-+#elif defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__powerpc64__)
+-#elif defined(__arm__) || defined(__aarch64__)
++#elif defined(__arm__) || defined(__aarch64__) || defined(__powerpc64__)
    .balign 4, 0x0
- #endif
- 
-@@ -419,4 +419,214 @@ CAPTURECONTEXT_SYMBOL2:
+   .type CAPTURECONTEXT_SYMBOL, %function
+   .type CAPTURECONTEXT_SYMBOL2, %function
+@@ -423,4 +423,214 @@
    jr $ra
- 
+
    .set at
 +#elif defined(__powerpc64__)
 +  // Store r0-r31
@@ -1457,12 +1457,12 @@ index de71e7231273..af0ffff39200 100644
 +  blr
  #endif  // __i386__
 diff --git a/third_party/crashpad/crashpad/util/misc/capture_context_test.cc b/third_party/crashpad/crashpad/util/misc/capture_context_test.cc
-index cf23c2deffa8..5f264bc92373 100644
+index 7f3890f1..d6b816c0 100644
 --- a/third_party/crashpad/crashpad/util/misc/capture_context_test.cc
 +++ b/third_party/crashpad/crashpad/util/misc/capture_context_test.cc
-@@ -57,7 +57,7 @@ void TestCaptureContext() {
+@@ -57,7 +57,7 @@
    uintptr_t pc = ProgramCounterFromContext(context_1);
- 
+
  #if !defined(ADDRESS_SANITIZER) && !defined(ARCH_CPU_MIPS_FAMILY) && \
 -    !defined(MEMORY_SANITIZER)
 +    !defined(MEMORY_SANITIZER) && !defined(ARCH_CPU_PPC64_FAMILY)
@@ -1470,7 +1470,7 @@ index cf23c2deffa8..5f264bc92373 100644
    // likely fail.
    const uintptr_t kReferencePC =
 diff --git a/third_party/crashpad/crashpad/util/misc/capture_context_test_util_linux.cc b/third_party/crashpad/crashpad/util/misc/capture_context_test_util_linux.cc
-index 9fc5db28c48a..5f69f8dcedbf 100644
+index 9fc5db28..5f69f8dc 100644
 --- a/third_party/crashpad/crashpad/util/misc/capture_context_test_util_linux.cc
 +++ b/third_party/crashpad/crashpad/util/misc/capture_context_test_util_linux.cc
 @@ -36,6 +36,8 @@ void SanityCheckContext(const NativeCPUContext& context) {
@@ -1481,7 +1481,7 @@ index 9fc5db28c48a..5f69f8dcedbf 100644
 +  EXPECT_EQ(context.uc_mcontext.gp_regs[3], FromPointerCast<uintptr_t>(&context));
  #endif
  }
- 
+
 @@ -50,6 +52,8 @@ uintptr_t ProgramCounterFromContext(const NativeCPUContext& context) {
    return context.uc_mcontext.pc;
  #elif defined(ARCH_CPU_MIPS_FAMILY)
@@ -1490,7 +1490,7 @@ index 9fc5db28c48a..5f69f8dcedbf 100644
 +  return context.uc_mcontext.gp_regs[PT_NIP];
  #endif
  }
- 
+
 @@ -64,6 +68,8 @@ uintptr_t StackPointerFromContext(const NativeCPUContext& context) {
    return context.uc_mcontext.sp;
  #elif defined(ARCH_CPU_MIPS_FAMILY)
@@ -1499,9 +1499,9 @@ index 9fc5db28c48a..5f69f8dcedbf 100644
 +  return context.uc_mcontext.gp_regs[1];
  #endif
  }
- 
+
 diff --git a/third_party/crashpad/crashpad/util/posix/signals_test.cc b/third_party/crashpad/crashpad/util/posix/signals_test.cc
-index d91e3cc6622c..b1ffc7b15adb 100644
+index d91e3cc6..b1ffc7b1 100644
 --- a/third_party/crashpad/crashpad/util/posix/signals_test.cc
 +++ b/third_party/crashpad/crashpad/util/posix/signals_test.cc
 @@ -46,12 +46,12 @@ bool CanCauseSignal(int sig) {
@@ -1523,7 +1523,7 @@ index d91e3cc6622c..b1ffc7b15adb 100644
 @@ -117,9 +117,11 @@ void CauseSignal(int sig) {
        break;
      }
- 
+
 -#if !defined(ARCH_CPU_ARM64)
 +#if !defined(ARCH_CPU_ARM64) && !defined(ARCH_CPU_PPC64)
      // ARM64 has hardware integer division instructions that don’t generate a
@@ -1539,9 +1539,9 @@ index d91e3cc6622c..b1ffc7b15adb 100644
      }
 -#endif  // ARCH_CPU_ARM64
 +#endif  // !defined(ARCH_CPU_ARM64) && !defined(ARCH_CPU_PPC64)
- 
+
  #if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
      case SIGILL: {
--- 
-2.23.0
+--
+2.20.1
 

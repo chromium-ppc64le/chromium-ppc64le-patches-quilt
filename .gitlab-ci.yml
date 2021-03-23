@@ -1,0 +1,29 @@
+before_script:
+  - apt-get update -yq
+  - DEBIAN_FRONTEND="noninteractive" apt-get install -y make quilt wget
+
+stages:
+  - build
+
+default:
+  image: ubuntu:latest
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+build:
+  stage: build
+
+  only:
+    - tags
+
+  tags:
+    - docker
+
+  script:
+    - make dist
+
+  artifacts:
+    paths:
+      - target/patches-*.tar.gz
+

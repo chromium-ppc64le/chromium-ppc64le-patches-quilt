@@ -1,5 +1,5 @@
---- chromium-84.0.4147.89.orig/third_party/libvpx/BUILD.gn
-+++ chromium-84.0.4147.89/third_party/libvpx/BUILD.gn
+--- chromium-85.0.4183.133.orig/third_party/libvpx/BUILD.gn
++++ chromium-85.0.4183.133/third_party/libvpx/BUILD.gn
 @@ -411,6 +411,8 @@ static_library("libvp9rc") {
      } else {
        sources = libvpx_srcs_arm64

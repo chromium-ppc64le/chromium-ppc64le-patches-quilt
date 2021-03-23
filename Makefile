@@ -5,7 +5,7 @@
 
 .DEFAULT_GOAL := all
 
-chrome_ver := 84.0.4147.89
+chrome_ver := 85.0.4183.133
 
 chrome_url := https://commondatastorage.googleapis.com/chromium-browser-official/chromium-$(chrome_ver).tar.xz
 download_url_base := https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download

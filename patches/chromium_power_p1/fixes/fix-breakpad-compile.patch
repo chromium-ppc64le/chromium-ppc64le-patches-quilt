@@ -1,5 +1,5 @@
---- chromium-84.0.4147.89.orig/third_party/breakpad/BUILD.gn
-+++ chromium-84.0.4147.89/third_party/breakpad/BUILD.gn
+--- chromium-85.0.4183.133.orig/third_party/breakpad/BUILD.gn
++++ chromium-85.0.4183.133/third_party/breakpad/BUILD.gn
 @@ -598,7 +598,6 @@ if (is_linux || is_android) {
        "breakpad/src/client/minidump_file_writer.h",
        "breakpad/src/common/convert_UTF.cc",

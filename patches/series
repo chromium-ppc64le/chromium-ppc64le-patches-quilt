@@ -36,7 +36,6 @@ chromium_power_p1/crashpad/0001-Implement-support-for-PPC64-on-Linux.patch
 chromium_power_p1/database/0001-Properly-detect-little-endian-PPC64-systems.patch
 chromium_power_p1/third_party/0001-Force-baseline-POWER8-AltiVec-VSX-CPU-features-when-.patch
 chromium_power_p1/third_party/0001-xf86drm.c-Fix-build-on-newer-glibc.patch
-chromium_power_p1/fixes/scoped_nss_types-h-compile-fix.patch
 chromium_power_p1/fixes/fix-breakpad-compile.patch
 chromium_power_p1/fixes/fix-libvpx-compile.patch
 

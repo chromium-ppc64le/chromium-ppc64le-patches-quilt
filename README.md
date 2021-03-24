@@ -7,7 +7,7 @@ application using `quilt` and tagged for specific Chromium releases.
 <!-- CURRENT TABLE -->
 | Version | Patches |
 | ------- | ------- |
-| 85.0.4183.133 | [patches-85.0.4183.133.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v85.0.4183.133/patches-85.0.4183.133.tar.gz) |
+| 85.0.4183.133 | [patches-85.0.4183.133.tar.gz](https://gitlab.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/-/jobs/1123168154/artifacts/raw/target/patches-85.0.4183.133.tar.gz) |
 
 ## Prerequisites
 

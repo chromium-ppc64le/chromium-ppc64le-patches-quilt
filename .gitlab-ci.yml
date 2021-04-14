@@ -4,7 +4,7 @@ variables:
 
 before_script:
   - apt-get update -yq
-  - DEBIAN_FRONTEND="noninteractive" apt-get install -y make quilt wget
+  - DEBIAN_FRONTEND="noninteractive" apt-get install -y make quilt wget curl
 
 stages:
   - build

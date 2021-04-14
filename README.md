@@ -7,7 +7,7 @@ application using `quilt` and tagged for specific Chromium releases.
 <!-- CURRENT TABLE -->
 | Version | Patches |
 | ------- | ------- |
-| 85.0.4183.133 | [patches-85.0.4183.133.tar.gz](https://gitlab.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/-/jobs/1123168154/artifacts/raw/target/patches-85.0.4183.133.tar.gz) |
+| 86.0.4240.198 | [patches-86.0.4240.198.tar.gz](https://gitlab.com/api/v4/projects/15196353/packages/generic/chromium-ppc64le-patches-quilt/86.0.4240.198/patches-86.0.4240.198.tar.gz) |
 
 ## Prerequisites
 
@@ -17,17 +17,17 @@ to apply the patches easily.
 ## Applying patches
 
 ```
-tar xJf chromium-85.0.4183.133.tar.xz
-cd chromium-85.0.4183.133
-tar xzf patches-85.0.4183.133.tar.gz
+tar xJf chromium-86.0.4240.198.tar.xz
+cd chromium-86.0.4240.198
+tar xzf patches-86.0.4240.198.tar.gz
 quilt push -a
 ```
 
 ## Previous versions
-
 <!-- ARCHIVE TABLE -->
 | Version | Patches |
 | ------- | ------- |
+| 85.0.4183.133 | [patches-85.0.4183.133.tar.gz](https://gitlab.com/api/v4/projects/15196353/packages/generic/chromium-ppc64le-patches-quilt/85.0.4183.133/patches-85.0.4183.133.tar.gz) |
 | 84.0.4147.89 | [patches-84.0.4147.89.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v84.0.4147.89/patches-84.0.4147.89.tar.gz) |
 | 83.0.4103.97 | [patches-83.0.4103.97.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v83.0.4103.97/patches-83.0.4103.97.tar.gz) |
 | 83.0.4103.61 | [patches-83.0.4103.61.tar.gz](https://github.com/chromium-ppc64le/chromium-ppc64le-patches-quilt/releases/download/v83.0.4103.61/patches-83.0.4103.61.tar.gz) |

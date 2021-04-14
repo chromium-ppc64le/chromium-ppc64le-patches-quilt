@@ -4,7 +4,6 @@ chromium_power/sandbox/0001-sandbox-linux-bpf_dsl-Update-syscall-ranges-for-ppc6
 chromium_power/sandbox/0001-sandbox-linux-Implement-partial-support-for-ppc64-sy.patch
 chromium_power/sandbox/0001-sandbox-linux-Update-IsSyscallAllowed-in-broker_proc.patch
 chromium_power/sandbox/0001-sandbox-linux-Update-syscall-helpers-lists-for-ppc64.patch
-chromium_power/sandbox/0001-services-service_manager-sandbox-linux-Fix-TCGETS-de.patch
 chromium_power/sandbox/0002-sandbox-linux-bpf_dsl-Modify-seccomp_macros-to-add-s.patch
 chromium_power/sandbox/0003-sandbox-linux-system_headers-Update-linux-seccomp-he.patch
 chromium_power/sandbox/0004-sandbox-linux-system_headers-Update-linux-signal-hea.patch
@@ -30,6 +29,7 @@ chromium_power/workarounds/HACK-third_party-libvpx-use-generic-gnu.patch
 chromium_power/libaom/0001-Add-ppc64-target-to-libaom.patch
 chromium_power/libaom/0001-Add-pregenerated-config-for-libaom-on-ppc64.patch
 
+chromium_power_p1/sandbox/0001-sandbox-policy-linux-Fix-TCGETS-de.patch
 chromium_power_p1/ffmpeg/0001-Add-support-for-ppc64.patch
 chromium_power_p1/breakpad/0001-Implement-support-for-ppc64-on-Linux.patch
 chromium_power_p1/crashpad/0001-Implement-support-for-PPC64-on-Linux.patch

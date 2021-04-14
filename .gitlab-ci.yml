@@ -1,7 +1,3 @@
-variables:
-  VERSION: "${CI_COMMIT_TAG}"
-  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/chromium-ppc64le-patches-quilt/${VERSION}"
-
 before_script:
   - apt-get update -yq
   - DEBIAN_FRONTEND="noninteractive" apt-get install -y make quilt wget curl
@@ -16,6 +12,8 @@ default:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  VERSION: "${CI_COMMIT_TAG}"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/chromium-ppc64le-patches-quilt/${VERSION}"
 
 build:
   stage: build

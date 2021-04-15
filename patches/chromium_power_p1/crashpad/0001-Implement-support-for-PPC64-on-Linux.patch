@@ -1504,7 +1504,7 @@ diff --git a/third_party/crashpad/crashpad/util/posix/signals_test.cc b/third_pa
 index d91e3cc6..b1ffc7b1 100644
 --- a/third_party/crashpad/crashpad/util/posix/signals_test.cc
 +++ b/third_party/crashpad/crashpad/util/posix/signals_test.cc
-@@ -46,12 +46,12 @@ bool CanCauseSignal(int sig) {
+@@ -46,9 +46,9 @@
    return sig == SIGABRT ||
           sig == SIGALRM ||
           sig == SIGBUS ||
@@ -1515,15 +1515,11 @@ index d91e3cc6..b1ffc7b1 100644
 +#endif  // !defined(ARCH_CPU_ARM64) && !defined(ARCH_CPU_PPC64)
  #if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
           sig == SIGILL ||
--#endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL
-+#endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
-          sig == SIGPIPE ||
-          sig == SIGSEGV ||
- #if defined(OS_MACOSX)
-@@ -117,9 +117,11 @@ void CauseSignal(int sig) {
+ #endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
+@@ -117,9 +117,11 @@
        break;
      }
-
+ 
 -#if !defined(ARCH_CPU_ARM64)
 +#if !defined(ARCH_CPU_ARM64) && !defined(ARCH_CPU_PPC64)
      // ARM64 has hardware integer division instructions that don’t generate a
@@ -1533,13 +1529,13 @@ index d91e3cc6..b1ffc7b1 100644
      case SIGFPE: {
        // Optimization makes this tricky, so get zero from a system call likely
        // to succeed, and try to do something with the result.
-@@ -137,7 +139,7 @@ void CauseSignal(int sig) {
+@@ -137,7 +139,7 @@
        fstat(quotient, &stat_buf);
        break;
      }
 -#endif  // ARCH_CPU_ARM64
 +#endif  // !defined(ARCH_CPU_ARM64) && !defined(ARCH_CPU_PPC64)
-
+ 
  #if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
      case SIGILL: {
 --
